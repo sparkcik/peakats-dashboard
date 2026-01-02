@@ -1,0 +1,66 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-01-01T19:15:00.000000Z",
+  "clients": {
+    "star_one": {
+      "display_name": "Star_One",
+      "active": true,
+      "fadv_prefix": "STARONE",
+      "notes": "Primary FedEx ISP client"
+    },
+    "cbm": {
+      "display_name": "CBM",
+      "active": true,
+      "fadv_prefix": "CBM",
+      "notes": "New client added 2026-01-01"
+    },
+    "jcb": {
+      "display_name": "JCB",
+      "active": true,
+      "fadv_prefix": "JCB",
+      "notes": ""
+    },
+    "rm_iv": {
+      "display_name": "RM_IV",
+      "active": true,
+      "fadv_prefix": "RMIV",
+      "notes": ""
+    },
+    "woodstock": {
+      "display_name": "Woodstock",
+      "active": true,
+      "fadv_prefix": "WOODSTOCK",
+      "notes": ""
+    },
+    "james_elite": {
+      "display_name": "James_Elite",
+      "active": true,
+      "fadv_prefix": "JAMESELITE",
+      "notes": ""
+    },
+    "dd_networks": {
+      "display_name": "DD_Networks",
+      "active": true,
+      "fadv_prefix": "DDNETWORKS",
+      "notes": "Per SOW: $650/mo retainer, 1-3 candidates/month"
+    },
+    "austell_area": {
+      "display_name": "Austell Area",
+      "active": true,
+      "fadv_prefix": "AUSTELL",
+      "notes": ""
+    },
+    "marietta_area": {
+      "display_name": "Marietta Area",
+      "active": true,
+      "fadv_prefix": "MARIETTA",
+      "notes": ""
+    },
+    "norcross_area": {
+      "display_name": "Norcross Area",
+      "active": true,
+      "fadv_prefix": "NORCROSS",
+      "notes": ""
+    }
+  }
+}
