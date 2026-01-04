@@ -487,10 +487,17 @@ def main():
                         changes_made = True
                 
                 if changes_made:
-                    st.success("✓ Changes saved to database!")
-                    st.rerun()
+                    st.success("✓ Changes saved to cloud database!")
+                    # Don't auto-refresh - let user continue editing
+                    # User can click "Refresh Data" button when ready
             
-            st.caption("💡 Tip: ⚠️ = FADV status changed. Click Notes to edit (auto-clears flag). Click G/M checkboxes to mark forms uploaded.")
+            # Manual refresh button
+            col_refresh, col_tip = st.columns([1, 4])
+            with col_refresh:
+                if st.button("🔄 Refresh Data", use_container_width=True):
+                    st.rerun()
+            with col_tip:
+                st.caption("💡 Tip: ⚠️ = FADV status changed. Edits save instantly. Click 'Refresh Data' to see latest from all users.")
             
             # Add row selector for detail view
             st.divider()
