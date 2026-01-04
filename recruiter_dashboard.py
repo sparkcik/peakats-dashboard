@@ -6,6 +6,7 @@ Connects to Supabase PostgreSQL
 
 import streamlit as st
 import pandas as pd
+import json
 from datetime import datetime
 from pathlib import Path
 import os
@@ -18,6 +19,39 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Client Registry
+def load_client_registry():
+    """Load client registry for display names"""
+    paths = [
+        Path("client_registry.json"),
+        Path(__file__).parent / "client_registry.json",
+    ]
+    
+    for path in paths:
+        if path.exists():
+            try:
+                with open(path, 'r') as f:
+                    registry = json.load(f)
+                return registry.get('clients', {})
+            except:
+                continue
+    return {}
+
+def get_display_name(client_id, registry):
+    """Get display name for a client_id"""
+    client_info = registry.get(client_id, {})
+    return client_info.get('dashboard_title', 
+           client_info.get('display_name', 
+           client_info.get('name', client_id)))
+
+def get_client_id_from_display(display_name, registry):
+    """Reverse lookup: get client_id from display name"""
+    for client_id, info in registry.items():
+        dn = info.get('dashboard_title', info.get('display_name', info.get('name', client_id)))
+        if dn == display_name:
+            return client_id
+    return display_name  # fallback to original
 
 # Database connection
 def get_db_url():
@@ -210,12 +244,22 @@ def main():
     with st.sidebar:
         st.header("🔍 Filters")
         
+        # Load client registry for display names
+        registry = load_client_registry()
+        
         # Search
         search = st.text_input("Search", placeholder="Name, email, phone...")
         
-        # Client filter
-        clients = ['All'] + sorted(df['client_id'].unique().tolist())
-        client_filter = st.selectbox("Client", clients)
+        # Client filter - use display names
+        client_ids = sorted(df['client_id'].unique().tolist())
+        client_display_names = ['All'] + [get_display_name(cid, registry) for cid in client_ids]
+        client_filter_display = st.selectbox("Client", client_display_names)
+        
+        # Convert display name back to client_id for filtering
+        if client_filter_display != 'All':
+            client_filter = get_client_id_from_display(client_filter_display, registry)
+        else:
+            client_filter = 'All'
         
         # RWP filter
         rwp_range = st.slider("RWP Score Range", 0, 10, (0, 10))
@@ -362,6 +406,9 @@ def main():
                 'g', 'm', 'rwp_score', 'order_status', 'profile_status',
                 'bg_id', 'bg_status', 'drug_id', 'drug_status', 'phone', 'email'
             ]].copy()
+            
+            # Convert client_id to display name
+            display_df['client_id'] = display_df['client_id'].apply(lambda x: get_display_name(x, registry))
             
             # Rename columns
             display_df.columns = [
@@ -532,10 +579,13 @@ def main():
             st.bar_chart(rwp_dist)
         
         with col2:
-            # Client Breakdown
+            # Client Breakdown - use display names
             st.markdown("**Candidates by Client**")
-            client_dist = filtered_df['client_id'].value_counts()
-            st.bar_chart(client_dist)
+            client_counts = filtered_df['client_id'].value_counts()
+            client_display_counts = pd.Series(
+                {get_display_name(cid, registry): count for cid, count in client_counts.items()}
+            )
+            st.bar_chart(client_display_counts)
         
         col3, col4 = st.columns(2)
         
@@ -570,6 +620,9 @@ def main():
             'updated', 'profile_status', 'bg_id', 'bg_status',
             'drug_id', 'drug_status', 'phone'
         ]].copy()
+        
+        # Convert client_id to display name in export
+        export_df['client_id'] = export_df['client_id'].apply(lambda x: get_display_name(x, registry))
         
         # Rename columns for export
         export_df.columns = [
@@ -615,7 +668,7 @@ def main():
                 st.rerun()
             
             st.subheader(f"{candidate['first_name']} {candidate['last_name']}")
-            st.caption(f"Client: {candidate['client_id']}")
+            st.caption(f"Client: {get_display_name(candidate['client_id'], registry)}")
             
             # FADV Change Flag (if present)
             if candidate['flag'] == 1:
