@@ -1,0 +1,5 @@
+reflex
+sqlalchemy
+psycopg2-binary
+
+reflex==0.8.24.post1
