@@ -1,5 +1,12 @@
+<<<<<<< HEAD
 reflex
 sqlalchemy
 psycopg2-binary
 
 reflex==0.8.24.post1
+=======
+streamlit>=1.28.0
+pandas>=2.0.0
+psycopg2-binary>=2.9.0
+sqlalchemy>=2.0.0
+>>>>>>> 1c8d20bb00e94830e058cd893de1768df4d1bf25
