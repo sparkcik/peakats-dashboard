@@ -128,6 +128,7 @@ class Candidate(rx.Base):
     flag: int = 0
     flag_details: str = ""
     flag_type: str = ""
+    reject_reason: str = ""
     created_at: str = ""
     updated_at: str = ""
 
@@ -266,7 +267,8 @@ class State(rx.State):
                     COALESCE(fadv_change_flag, 0) as flag,
                     COALESCE(fadv_change_details, '') as flag_details,
                     COALESCE(created_at::text, '') as created_at,
-                    COALESCE(updated_at::text, '') as updated_at
+                    COALESCE(updated_at::text, '') as updated_at,
+                    COALESCE(reject_reason, '') as reject_reason
                 FROM candidates
                 ORDER BY fadv_change_flag DESC, id DESC
             """
@@ -336,6 +338,7 @@ class State(rx.State):
                         flag_type=get_flag_type(flag_details),
                         created_at=format_date(row[27] or ""),
                         updated_at=format_date(row[28] or ""),
+                        reject_reason=row[29] or "",
                     )
                     self.candidates.append(c)
                     
@@ -937,7 +940,8 @@ class State(rx.State):
                 # Archive/delete secondary record (set status to 'Rejected')
                 conn.execute(text("""
                     UPDATE candidates 
-                    SET status = 'Rejected',
+                    SET status = 'Transferred',
+                        reject_reason = 'Merged - duplicate record',
                         recruiter_notes = COALESCE(recruiter_notes, '') || :merge_note,
                         updated_at = NOW()
                     WHERE id = :id
