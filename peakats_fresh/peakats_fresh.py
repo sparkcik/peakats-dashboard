@@ -1417,20 +1417,32 @@ def candidate_row(candidate: Candidate) -> rx.Component:
         rx.table.cell(tag_badge(candidate.tag), white_space="nowrap"),
         # EDITABLE COLUMNS GROUP END
         rx.table.cell(rx.text(candidate.email, size="1"), white_space="nowrap"),
-        _hover={"background": "var(--gray-4)"},
-        # Row background color based on status
-        background=rx.match(
-            candidate.status,
-            ("Hired", "var(--green-3)"),
-            ("Rejected", "var(--red-2)"),
-            ("Transferred", "var(--red-2)"),
-            ("Intake", "var(--gray-2)"),
-            ("Followup", "var(--yellow-2)"),
-            ("On Deck", "var(--blue-2)"),
-            ("Active", "white"),
-            "white",
-        ),
+        style={
+
+            "background": rx.match(
+
+                candidate.status,
+
+                ("Hired", "var(--green-3)"),
+
+                ("Rejected", "var(--red-2)"),
+
+                ("Transferred", "var(--red-2)"),
+
+                ("Intake", "var(--gray-2)"),
+
+                ("Followup", "var(--yellow-2)"),
+
+                ("On Deck", "var(--blue-2)"),
+
+                "white",
+
+            ),
+
+        },
+
     )
+
 
 
 def filter_with_label(label: str, options, value, on_change) -> rx.Component:
