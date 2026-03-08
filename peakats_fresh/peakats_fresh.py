@@ -1417,7 +1417,7 @@ def candidate_row(candidate: Candidate) -> rx.Component:
         rx.table.cell(tag_badge(candidate.tag), white_space="nowrap"),
         # EDITABLE COLUMNS GROUP END
         rx.table.cell(rx.text(candidate.email, size="1"), white_space="nowrap"),
-        background_color=rx.cond(
+        bg=rx.cond(
             candidate.status == "Hired", "var(--green-3)",
             rx.cond(candidate.status == "Rejected", "var(--red-2)",
             rx.cond(candidate.status == "Transferred", "var(--red-2)",
