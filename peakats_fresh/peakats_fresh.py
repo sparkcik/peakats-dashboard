@@ -781,6 +781,10 @@ class State(rx.State):
                     "status": c.status,
                     "notes": c.recruiter_notes,
                     "fedex_id": c.fedex_id,
+                    "bg_override": c.bg_override,
+                    "drug_override": c.drug_override,
+                    "gcic": c.gcic,
+                    "mec": c.mec,
                 }
             elif c.id == id2:
                 self.merge_candidate_2 = {
@@ -802,6 +806,10 @@ class State(rx.State):
                     "status": c.status,
                     "notes": c.recruiter_notes,
                     "fedex_id": c.fedex_id,
+                    "bg_override": c.bg_override,
+                    "drug_override": c.drug_override,
+                    "gcic": c.gcic,
+                    "mec": c.mec,
                 }
         
         # Default primary to the one with more FADV data
@@ -878,6 +886,46 @@ class State(rx.State):
                     updates.append("recruiter_notes = :notes")
                     params["notes"] = merged_notes
                 
+                # Pull FADV status fields if primary is missing them
+                fadv_statuses = [
+                    ("background_status", "bg_status", "background_status"),
+                    ("drug_test_status",  "drug_status", "drug_test_status"),
+                    ("profile_status",    "profile_status", "profile_status"),
+                ]
+                for src_key, param_key, db_col in fadv_statuses:
+                    pval = primary.get(src_key, "") or ""
+                    sval = secondary.get(src_key, "") or ""
+                    if pval in ("Not Started", "") and sval not in ("Not Started", ""):
+                        updates.append(f"{db_col} = :{param_key}")
+                        params[param_key] = sval
+
+                # Pull FADV IDs if primary is missing them
+                if not primary.get("background_id") and secondary.get("background_id"):
+                    updates.append("background_id = :bg_id")
+                    params["bg_id"] = secondary["background_id"]
+
+                if not primary.get("drug_test_id") and secondary.get("drug_test_id"):
+                    updates.append("drug_test_id = :drug_id")
+                    params["drug_id"] = secondary["drug_test_id"]
+
+                # Pull override locks if secondary has them and primary doesn't
+                if not primary.get("bg_override") and secondary.get("bg_override"):
+                    updates.append("bg_override = :bg_override")
+                    params["bg_override"] = secondary["bg_override"]
+
+                if not primary.get("drug_override") and secondary.get("drug_override"):
+                    updates.append("drug_override = :drug_override")
+                    params["drug_override"] = secondary["drug_override"]
+
+                # Pull form upload flags if primary is missing them
+                if not primary.get("gcic") and secondary.get("gcic"):
+                    updates.append("gcic_uploaded = :gcic")
+                    params["gcic"] = secondary["gcic"]
+
+                if not primary.get("mec") and secondary.get("mec"):
+                    updates.append("mec_uploaded = :mec")
+                    params["mec"] = secondary["mec"]
+
                 # Always add merge tracking
                 updates.append("updated_at = NOW()")
                 
@@ -1274,7 +1322,7 @@ def status_badge(status: str) -> rx.Component:
         status,
         ("Hired", rx.badge(status, color_scheme="green", size="1")),
         ("Rejected", rx.badge(status, color_scheme="red", size="1")),
-        ("Hired", rx.badge(status, color_scheme="green", size="1")),
+        ("Transferred", rx.badge(status, color_scheme="red", size="1")),
         ("On Deck", rx.badge(status, color_scheme="blue", size="1")),
         ("Followup", rx.badge(status, color_scheme="yellow", size="1")),
         rx.badge(status, color_scheme="gray", size="1"),
@@ -1365,8 +1413,8 @@ def candidate_row(candidate: Candidate) -> rx.Component:
         background=rx.match(
             candidate.status,
             ("Hired", "var(--green-3)"),
-            ("Hired", "var(--green-2)"),
             ("Rejected", "var(--red-2)"),
+            ("Transferred", "var(--red-2)"),
             ("Intake", "var(--gray-2)"),
             ("Followup", "var(--yellow-2)"),
             ("On Deck", "var(--blue-2)"),
