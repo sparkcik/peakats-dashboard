@@ -223,6 +223,7 @@ class State(rx.State):
     edit_drug_override: bool = False
     edit_fedex: str = ""
     edit_status: str = "Active"
+    edit_reject_reason: str = ""
     edit_tag: str = "Driver"
     edit_clear_flag: bool = False
     editing_has_flag: bool = False
@@ -1022,6 +1023,7 @@ class State(rx.State):
                 self.edit_drug_override = c.drug_override == 1
                 self.edit_fedex = c.fedex_id
                 self.edit_status = c.status
+                self.edit_reject_reason = getattr(c, "reject_reason", "") or ""
                 self.edit_tag = c.tag
                 self.editing_has_flag = c.flag == 1
                 self.edit_clear_flag = False
@@ -1118,6 +1120,7 @@ class State(rx.State):
                         fedex_id = :fedex,
                         status = :status,
                         tag = :tag,
+                        reject_reason = :reject_reason,
                         fadv_change_flag = 0,
                         fadv_change_details = '',
                         updated_at = NOW()
@@ -1141,6 +1144,7 @@ class State(rx.State):
                         status = :status,
                         tag = :tag,
                         updated_at = NOW()
+                        reject_reason = :reject_reason,
                     WHERE id = :id
                 """)
             
@@ -1160,6 +1164,7 @@ class State(rx.State):
                     "fedex": self.edit_fedex,
                     "status": self.edit_status,
                     "tag": self.edit_tag,
+                    "reject_reason": self.edit_reject_reason if self.edit_status in ("Rejected", "Transferred") else None,
                     "id": self.editing_id,
                 })
                 conn.commit()
@@ -1589,6 +1594,22 @@ def edit_modal() -> rx.Component:
                     align="start",
                 ),
                 
+                # Reject reason (conditional on status)
+                rx.cond(
+                    (State.edit_status == "Rejected") | (State.edit_status == "Transferred"),
+                    rx.vstack(
+                        rx.text("Reject / Transfer Reason", size="2", weight="medium"),
+                        rx.input(
+                            value=State.edit_reject_reason,
+                            on_change=State.set_edit_reject_reason,
+                            placeholder="e.g. No-show, Failed BG, Transferred to CBM...",
+                            width="100%",
+                        ),
+                        width="100%",
+                        align="start",
+                    ),
+                ),
+
                 # Tag
                 rx.vstack(
                     rx.text("Tag", size="2", weight="medium"),
